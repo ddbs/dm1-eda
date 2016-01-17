@@ -1,0 +1,115 @@
+---
+title: "Anexo 1: Análise Exploratória dos Dados"
+output: html_document
+---
+
+```{r, echo=FALSE, comment=NA, message=FALSE}
+
+df <- read.csv('./dataset/data.csv')
+
+library(pastecs)
+library(dplyr)
+library(moments)
+
+#number of columns
+n <- ncol(df)
+
+#print head
+for (i in 1:n) {
+  
+  #find variable class
+  varclass <- lapply(df[i], class)
+  
+  #plots
+  if (varclass == 'factor') barplot(table(df[i]), main=names(df[i]))
+  if (varclass == 'integer' | varclass == 'numeric') barplot(table(df[[i]]), main=names(df[i]))
+  if (varclass == 'integer' | varclass == 'numeric') boxplot(df[[i]], main=names(df[i]))
+  
+  # variable and variable class
+  print(lapply(df[i], class))
+  
+  #number of observations
+  var_count <- nrow(df[i])
+  
+  # unique values
+  var_unique <- unique(df[i])
+  var_unique_count <- nrow(var_unique)
+  
+  # missing values
+  var_missing <- sum(is.na(df[i]))
+  var_missing_pct <- var_missing/var_count
+  
+  #zero values
+  var_zero_count <- length(which(df[i] == 0))
+  var_zero_count_pct <- var_zero_count/var_count
+  
+  #statistics
+  myvar <- df[[i]]
+  if (varclass == 'integer' | varclass == 'numeric') {
+    cat("Min             :", min(myvar, na.rm=T))
+    cat("\nMax             :", max(myvar, na.rm=T))
+    cat("\nRange           :", range(myvar, na.rm=T))
+    cat("\nSum             :", sum(myvar, na.rm=T))
+    cat("\nMedian          :", median(myvar, na.rm=T))
+    cat("\nMean            :", mean(myvar, na.rm=T))
+    cat("\nVariance        :", var(myvar, na.rm=T))
+    cat("\nSkewness        :", skewness(myvar, na.rm=T))
+    cat("\nKurtosis        :", kurtosis(myvar, na.rm=T))
+  }
+  
+    cat("\n\nObservations    :", var_count)
+    cat("\nUnique values   :", var_unique_count)
+    cat("\nMissing values  :", var_missing, " ", round(var_missing_pct*100,1),"%")
+    cat("\nZero values     :", var_zero_count, " ", round(var_zero_count_pct*100,1),"%")
+  
+  #outliers and negative values
+  if (varclass == 'integer' | varclass == 'numeric') {
+    
+    #negative values 
+    var_neg_count <- length(which(df[i] < 0))
+    var_neg_count_pct <- var_neg_count/var_count
+    cat("\nNeg. values     :", var_neg_count, " ", round(var_neg_count_pct*100,1),"%")
+    
+    # outliers
+    myvar <- df[[i]] 
+    upperq = quantile(myvar, na.rm=TRUE)[4]
+    lowerq = quantile(myvar, na.rm=TRUE)[2]
+    iqr = upperq - lowerq
+    outlier_level = 1.5
+    outlier_upper = (iqr * outlier_level) + upperq
+    outlier_lower = lowerq - (iqr * outlier_level)
+    
+    outlier_upper_filter <- myvar[myvar > outlier_upper & !is.na(myvar) == T]
+    outlier_lower_filter <- myvar[myvar < outlier_lower & !is.na(myvar) == T]
+    
+    outlier_upper_count <- length(outlier_upper_filter)
+    outlier_lower_count <- length(outlier_lower_filter)
+    
+    outlier_upper_count_pct <- outlier_upper_count/var_count
+    outlier_lower_count_pct <- outlier_lower_count/var_count
+    
+    cat("\n\n1Q    :", quantile(myvar, na.rm=TRUE)[1])
+    cat("\n2Q    :", quantile(myvar, na.rm=TRUE)[2])
+    cat("\n3Q    :", quantile(myvar, na.rm=TRUE)[3])
+    cat("\n4Q    :", quantile(myvar, na.rm=TRUE)[4])
+    cat("\n5Q    :", quantile(myvar, na.rm=TRUE)[5])
+    
+    cat("\n\nOUTLIERS at SD =", outlier_level,":")
+    cat("\nUpper limit:", outlier_upper)
+    cat("\nNumber of upper outliers:", outlier_upper_count, "", round(outlier_upper_count_pct,2),"%")
+    #cat("\nUpper outliers:\n")
+    #print(round(outlier_upper_filter,1))
+    
+    cat("\nLower limit:", outlier_lower)
+    cat("\nNumber of lower outliers:", outlier_lower_count, "", round(outlier_lower_count_pct,2),"%")
+    #cat("\nLower outliers:\n")
+    #print(outlier_lower_filter)
+
+    
+  }
+    
+    
+}
+
+```
+
